@@ -7,6 +7,8 @@
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
 #include <SimpleMath.h>
+#include <Keyboard.h>
+#include <Mouse.h>
 
 #include "StepTimer.h"
 
@@ -18,6 +20,7 @@ class Game
 public:
 
     Game();
+	virtual ~Game();
 
     // Initialization and management
     void Initialize(HWND window, int width, int height);
@@ -71,10 +74,22 @@ private:
 	std::unique_ptr<DirectX::SpriteBatch>m_spriteBatch;
 	//スプライトフォント
 	std::unique_ptr<DirectX::SpriteFont>m_spriteFont;
+	//文字列
+	std::wstring m_str;
 	//テクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
 
 
 	DirectX::SimpleMath::Vector2 m_screenPos;
 	DirectX::SimpleMath::Vector2 m_origin;
+
+	//キーボード
+	std::unique_ptr<DirectX::Keyboard> m_keyboard;
+	//マウス
+	std::unique_ptr<DirectX::Mouse> m_mouse;
+	//キーボードトラッカー
+	DirectX::Keyboard::KeyboardStateTracker m_KeyboardTracker;
+	//マウストラッカー
+	DirectX::Mouse::ButtonStateTracker m_tracker;
+	
 };

@@ -5,11 +5,14 @@
 
 #include "pch.h"
 #include "Game.h"
+#include "ADX2Le.h"
+#include "Resources/Music/Basic.h"
 #include <sstream>
 
 #include <WICTextureLoader.h>
 #include <DDSTextureLoader.h>
 #include <CommonStates.h>
+
 
 extern void ExitGame();
 
@@ -23,6 +26,12 @@ Game::Game() :
     m_outputHeight(600),
     m_featureLevel(D3D_FEATURE_LEVEL_9_1)
 {
+}
+
+Game::~Game()
+{
+	//サウンドライブラリの終了処理
+	ADX2Le::Finalize();
 }
 
 // Initialize the Direct3D resources required to run.
@@ -74,6 +83,19 @@ void Game::Initialize(HWND window, int width, int height)
 	//表示座標を画面の中央に設定
 	m_screenPos.x = m_outputWidth / 2.f;
 	m_screenPos.y = m_outputHeight / 2.f;
+
+	//キーボードのオブジェクト生成
+	m_keyboard = std::make_unique<Keyboard>();
+	//マウスのオブジェクト生成
+	m_mouse = std::make_unique<Mouse>();
+	//ウィンドウハンドラを通知
+	m_mouse->SetWindow(window);
+	
+	ADX2Le::Initialize("Resources/Music/ASX2_samples.acf");
+
+	ADX2Le::LoadAcb("Resources/Music/Basic.acb", "Resources/Music/Basic.awb");
+
+	ADX2Le::Play(CRI_BASIC_MUSIC2);
 }
 
 // Executes the basic game loop.
@@ -90,10 +112,81 @@ void Game::Tick()
 // Updates the world.
 void Game::Update(DX::StepTimer const& timer)
 {
-    float elapsedTime = float(timer.GetElapsedSeconds());
+	//Soundライブラリの毎フレーム更新
+	ADX2Le::Update();
+	
+	float elapsedTime = float(timer.GetElapsedSeconds());
 
-    // TODO: Add your game logic here.
-    elapsedTime;
+	// TODO: Add your game logic here.
+	elapsedTime;
+	//キーボードの状態を取得
+	auto kb = m_keyboard->GetState();
+	
+	m_KeyboardTracker.Update(kb);
+
+	if (kb.Back)
+	{
+		// Backspace key is down
+		//m_str = L"BackSpace!";
+	}
+
+	if (m_KeyboardTracker.pressed.Space)
+	{
+		//m_str = L"Space";
+	}
+	if (kb.W)
+	{
+		// W key is down
+	}
+	if (kb.A)
+	{
+		// A key is down
+	}
+	if (kb.S)
+	{
+		// S key is down
+	}
+	if (kb.D)
+	{
+		// D key is down
+	}
+	if (kb.LeftShift)
+	{
+		// Left shift key is down
+	}
+	if (kb.RightShift)
+	{
+		// Right shift key is down
+	}
+	//if (kb.IsKeyDown(VK_RETURN))
+	{
+		// Return key is down
+	}
+	//マウスの状態を取得
+	Mouse::State state = m_mouse->GetState();
+	m_tracker.Update(state);
+
+	if (m_tracker.rightButton == Mouse::ButtonStateTracker::HELD)
+	{
+		m_str = L"Trigger";
+	}
+	else
+	{
+		m_str = L"";
+	}
+
+
+	XMFLOAT2 mousePosInPixels(float(state.x), float(state.y));
+	m_screenPos = mousePosInPixels;
+
+	if (m_tracker.leftButton == Mouse::ButtonStateTracker::ButtonState::PRESSED)
+	{
+		m_mouse->SetMode(Mouse::MODE_RELATIVE);
+	}
+	else if (m_tracker.leftButton == Mouse::ButtonStateTracker::ButtonState::RELEASED)
+	{
+		m_mouse->SetMode(Mouse::MODE_ABSOLUTE);
+	}
 }
 
 // Draws the scene.
@@ -123,7 +216,7 @@ void Game::Render()
 	m_spriteBatch->Draw(m_texture.Get(), m_screenPos,nullptr, Colors::White,
 		XMConvertToRadians(90.0), m_origin,2.0f);
 
-	m_spriteFont->DrawString(m_spriteBatch.get(), L"Hello, world!", XMFLOAT2(100, 100));
+	m_spriteFont->DrawString(m_spriteBatch.get(), m_str.c_str(), XMFLOAT2(100, 100));
 	m_spriteBatch->End();
 
 	
